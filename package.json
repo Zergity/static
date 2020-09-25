@@ -1,0 +1,16 @@
+{
+  "name": "static",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Zergity <zergity@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "browserify solana.js -o bundle/solana.js",
+    "watch": "watchify solana.js -o bundle/solana.js -v",
+    "serve": "http-server"
+  },
+  "dependencies": {
+    "@metamask/detect-provider": "^1.1.0",
+    "@solana/web3.js": "^0.77.0"
+  }
+}

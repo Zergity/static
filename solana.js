@@ -1,6 +1,6 @@
 const bs58 = require('bs58');
 const detectEthereumProvider = require('@metamask/detect-provider');
-const { PublicKey, SystemProgram, Transaction, SystemInstruction, Message } = require('@solana/web3.js')
+const { PublicKey, SystemProgram, Transaction } = require('@solana/web3.js')
 
 // this returns the provider, or null if it wasn't detected
 detectEthereumProvider().then(setupProvider)
@@ -77,8 +77,20 @@ function setupProvider(provider) {
   // Otherwise, you popup-spam the user like it's 1999.
   // If you fail to retrieve the user's account(s), you should encourage the user
   // to initiate the attempt.
+
+  if (document.readyState !== 'loading') {
+    showButton(handleAccountsChanged)
+  } else {
+    window.addEventListener('DOMContentLoaded',
+      () => showButton(handleAccountsChanged),
+      { once: true })
+  }
+}
+
+function showButton(handleAccountsChanged) {
   const button = document.getElementById('connectButton');
   if (!button) {
+    console.error('!button')
     return
   }
   button.onclick = async () => {
@@ -101,8 +113,12 @@ function doLogout() {
   console.log('Logged out')
 }
 
-async function doLogin(account) {
-  console.log('Account: ', account);
+function doLogin(account) {
+  console.log('Account: ', account)
+  doSomething(account)
+}
+
+async function doSomething(account) {
   await ethereum
     .request({
       method: 'getBalance',
@@ -132,7 +148,7 @@ async function doLogin(account) {
     .request({ method: 'getRecentBlockhash' })
     .then(res => Promise.resolve(res.value.blockhash))
     .catch(err => console.error('getRecentBlockhash', err))
-  console.error('recentBlockhash', recentBlockhash)
+  console.log('recentBlockhash', recentBlockhash)
 
   const fromPubkey = new PublicKey(account)
   const tx = new Transaction({recentBlockhash: '11111111111111111111111111111111'})
@@ -147,10 +163,10 @@ async function doLogin(account) {
   const signData = tx.serializeMessage();
   const wireTx = tx._serialize(signData);
   const encodedTx = bs58.encode(wireTx);
-  console.error('encodedTx', encodedTx)
+  console.log('encodedTx', encodedTx)
   // const decoded = bs58.decode(encodedTx)
   // const t = Transaction.from(decoded)
-  // console.error('decoded', t)
+  // console.log('decoded', t)
 
   await ethereum
     .request({

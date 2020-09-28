@@ -115,7 +115,9 @@ function doLogout() {
 
 function doLogin(account) {
   console.log('Account: ', account)
-  doSomething(account)
+  const button = document.getElementById('btnDoSomething');
+  button.onclick = () => {doSomething(account)}
+  button.disabled = false;
 }
 
 async function doSomething(account) {

@@ -115,66 +115,180 @@ function doLogout() {
 
 function doLogin(account) {
   console.log('Account: ', account)
-  const button = document.getElementById('btnDoSomething');
-  button.onclick = () => {doSomething(account)}
-  button.disabled = false;
+  if (account) {
+    renderAccounts(account)
+  }
+  // wallet_getClusterBtn
+  const wallet_getClusterBtn = document.getElementById('wallet_getClusterBtn');
+  wallet_getClusterBtn.onclick = () => {wallet_getCluster()}
+  wallet_getClusterBtn.disabled = false;
+  // getBalance
+  const getBalanceBtn = document.getElementById('getBalanceBtn');
+  getBalanceBtn.onclick = () => {getBalance(account)}
+  getBalanceBtn.disabled = false;
+  // getAccountInfo
+  const getAccountInfoBtn = document.getElementById('getAccountInfoBtn');
+  getAccountInfoBtn.onclick = () => {getAccountInfo(account)}
+  getAccountInfoBtn.disabled = false;
+  // getAccountInfo
+  const wallet_accountsBtn = document.getElementById('wallet_accountsBtn');
+  wallet_accountsBtn.onclick = () => {wallet_accounts(account)}
+  wallet_accountsBtn.disabled = false;
+  // buildRawTxBtn
+  const buildRawTxBtn = document.getElementById('buildRawTxBtn');
+  buildRawTxBtn.onclick = () => {buildRawTx(account)}
+  buildRawTxBtn.disabled = false;
+
 }
 
-async function doSomething(account) {
+function renderAccounts(account) {
+  const accountsDiv = document.getElementById('accounts')
+  const text = document.createTextNode(account)
+  accountsDiv.appendChild(text)
+}
+
+async function wallet_getCluster() {
+  await ethereum
+    .request({
+      method: 'wallet_getCluster',
+    })
+    .then(res => {
+      console.log('cluste', res)
+      const div = document.getElementById('wallet_getCluster')
+      const text = document.createTextNode(JSON.stringify(res))
+      div.appendChild(text)
+    })
+    .catch(err => console.error('cluster nodes', err))
+}
+
+async function getBalance(account) {
   await ethereum
     .request({
       method: 'getBalance',
       params: [account],
     })
-    .then(res => console.log('balance', res))
+    .then(res => {
+      console.log('balance', res)
+      const div = document.getElementById('getBalance')
+      const text = document.createTextNode(`${JSON.stringify(res.value/Math.pow(10,9))} SOL`)
+      div.appendChild(text)
+    })
     .catch(err => console.error('balance', err))
+}
+async function getAccountInfo(account) {
   await ethereum
     .request({
       method: 'getAccountInfo',
       params: [account],
     })
-    .then(res => console.log('account', res))
-    .catch(err => console.error('account', err))
-  await ethereum
-    .request({
-      method: 'getClusterNodes',
+    .then(res => {
+      console.log('account', res)
+      const div = document.getElementById('getAccountInfo')
+      const textArea = document.createElement('textarea')
+      textArea.setAttribute('rows', '13')
+      textArea.setAttribute('cols', '60')
+      textArea.setAttribute('disabled', true)
+      textArea.value = JSON.stringify(res, undefined, 1)
+      div.appendChild(textArea)
+
     })
-    .then(res => console.log('cluster nodes', res))
-    .catch(err => console.error('cluster nodes', err))
+    .catch(err => console.error('account', err))
+}
+
+async function wallet_accounts() {
   await ethereum
     .request({ method: 'wallet_accounts' })
-    .then(res => console.log('accounts', res))
+    .then(res => {
+      console.log('accounts', res)
+      const div = document.getElementById('wallet_accounts')
+      const text = document.createTextNode(JSON.stringify(res, null, '\t'))
+      div.appendChild(text)
+    })
     .catch(err => console.error('accounts', err))
+}
 
-  const recentBlockhash = await ethereum
-    .request({ method: 'getRecentBlockhash' })
-    .then(res => Promise.resolve(res.value.blockhash))
-    .catch(err => console.error('getRecentBlockhash', err))
-  console.log('recentBlockhash', recentBlockhash)
-
+async function buildRawTx(account) {
+  const toPubkey = document.getElementById('to').value
+  console.error('toPubkey', toPubkey);
+  const lamports = document.getElementById('amount').value
+  console.error('lamports', lamports);
   const fromPubkey = new PublicKey(account)
+  console.error('fromPubkey', fromPubkey);
   const tx = new Transaction({recentBlockhash: '11111111111111111111111111111111'})
-    .add(SystemProgram.transfer({
-      fromPubkey,
-      toPubkey: new PublicKey('G7awRVj7GNQzKZEVaJ1nJt2kiTTc1Z55gGcG6Ywf9ecS'),
-      lamports: 123,
-    }))
-
+  .add(SystemProgram.transfer({
+    fromPubkey,
+    toPubkey: new PublicKey(toPubkey),
+    lamports
+  }))
   tx.setSigners(fromPubkey)
-  
+  console.error('tx', tx);
+
+  const div = document.getElementById('rawTx')
+  const title = document.createElement('div')
+  const text = document.createTextNode('Raw transaction')
+  title.appendChild(text)
+  div.appendChild(title)
+
+  const textArea = document.createElement('textarea')
+  textArea.setAttribute('rows', '13')
+  textArea.setAttribute('cols', '60')
+  textArea.setAttribute('disabled', true)
+  textArea.value = JSON.stringify(tx, undefined, 1)
+  div.appendChild(textArea)
+
+  // signTxBtn
+  const signTxBtn = document.getElementById('signTxBtn');
+  signTxBtn.onclick = () => {signTx(tx)}
+  signTxBtn.disabled = false;
+
+}
+
+function signTx(tx) {
   const signData = tx.serializeMessage();
   const wireTx = tx._serialize(signData);
   const encodedTx = bs58.encode(wireTx);
   console.log('encodedTx', encodedTx)
-  // const decoded = bs58.decode(encodedTx)
-  // const t = Transaction.from(decoded)
-  // console.log('decoded', t)
 
+  const div = document.getElementById('encodedTx')
+  const title = document.createElement('div')
+  const text = document.createTextNode('Encoded Transaction')
+  title.appendChild(text)
+  div.appendChild(title)
+
+  const textArea = document.createElement('textarea')
+  textArea.setAttribute('rows', '13')
+  textArea.setAttribute('cols', '60')
+  textArea.setAttribute('disabled', true)
+  textArea.value = JSON.stringify(encodedTx, undefined, 1)
+  div.appendChild(textArea)
+
+  // send
+  const sendTxBtn = document.getElementById('sendTxBtn');
+  sendTxBtn.onclick = () => {sendTx(encodedTx)}
+  sendTxBtn.disabled = false;
+
+}
+async function sendTx(encodedTx) {
+  console.error('sendTx', encodedTx);
+  // const tx = {
+  //   from: "0x36fdba7f8b274ee773970c9bb0c16c44d7b3e669",
+  //   value: "0x542253a126ce40000",
+  //   data: "0x37a7113de5fa4f98c6a5159658e1ca66071064b1cd78689d…0000000000000000000000000000000000000000000000000",
+  //   gasPrice: "0x0",
+  //   to: "0x0000000000000000000000000000000000034567"
+  // }
+  // {
+  //   from:"0x36fdba7f8b274ee773970c9bb0c16c44d7b3e669",
+  //   value:"0x542253a126ce40000",
+  //   data:"0x37a7113de5fa4f98c6a5159658e1ca66071064b1cd78689d…0000000000000000000000000000000000000000000000000",
+  //   gasPrice:"0x0",
+  //   to:"0x0000000000000000000000000000000000034567"
+  // }
   await ethereum
-    .request({
-      method: 'wallet_sendTransaction',
-      params: [encodedTx],
-    })
-    .then(console.log)
-    .catch(console.error)
+  .request({
+    method: 'wallet_sendTransaction',
+    params: [encodedTx],
+  })
+  .then(console.log)
+  .catch(console.error)
 }

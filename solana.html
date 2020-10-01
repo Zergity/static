@@ -3,7 +3,42 @@
 	<script src="bundle/solana.js"></script>
 </head>
 <body>
-	<button id="connectButton" disabled>Connect</button>
-	<button id="btnDoSomething" disabled>Do Something</button>
+	<div>
+		<button id="connectButton" disabled>Connect</button>
+		<span>Selected account: </span><span id="accounts"></span>
+	</div>
+	<hr/>
+	<div>
+		<button id="wallet_getClusterBtn" disabled>wallet_getCluster</button>
+		<span id="wallet_getCluster"></span>
+	</div>
+	<hr/>
+	<div>
+		<button id="getBalanceBtn" disabled>getBalance</button>
+		<span id="getBalance"></span>
+	</div>
+	<hr/>
+	<div>
+		<button id="getAccountInfoBtn" disabled>getAccountInfo</button>
+		<span id="getAccountInfo"></span>
+	</div>
+	<hr/>
+	<div>
+		<button id="wallet_accountsBtn" disabled>wallet_accounts</button>
+		<span id="wallet_accounts"></span>
+	</div>
+	<hr/>
+	<div>
+		<div>Build transaction</div>
+		<div><span>Send to: </span><input id="to" type="text"/></div>
+		<div><span>Amount: </span><input id="amount" type="number"/></div>
+		<button id="buildRawTxBtn" disabled>Raw Tx</button>
+		<button id="signTxBtn" disabled>Sign Tx</button>
+		<button id="sendTxBtn" disabled>Send</button>
+	</div>
+	<hr/>
+	<div id="rawTx"></div>
+	<div id="encodedTx"></div>
+	<div id="result"></div>
 </body>
 </html>

@@ -238,52 +238,65 @@ async function buildRawTx(account) {
 
   // signTxBtn
   const signTxBtn = document.getElementById('signTxBtn');
-  signTxBtn.onclick = () => {signTx(tx)}
+  signTxBtn.onclick = () => {signTx(account)}
   signTxBtn.disabled = false;
 
 }
 
-function signTx(tx) {
-  const signData = tx.serializeMessage();
-  const wireTx = tx._serialize(signData);
-  const encodedTx = bs58.encode(wireTx);
-  console.log('encodedTx', encodedTx)
+async function signTx(account) {
+  const recentBlockhash = await ethereum
+  .request({ method: 'getRecentBlockhash' })
+  .then(res => Promise.resolve(res.value.blockhash))
+  .catch(err => console.error('getRecentBlockhash', err))
+  console.log('recentBlockhash', recentBlockhash)
+  const toPubkey = document.getElementById('to').value
+  const lamports = document.getElementById('amount').value
+  const txParams = {
+    fromPubkey: account,
+    toPubkey,
+    lamports,
+    recentBlockhash
+  }
 
-  const div = document.getElementById('encodedTx')
-  const title = document.createElement('div')
-  const text = document.createTextNode('Encoded Transaction')
-  title.appendChild(text)
-  div.appendChild(title)
+  await ethereum
+  .request({ method: 'wallet_signTransaction', params: [txParams]})
+  .then((res) => {
+    console.error('signedTx', res);
+    const signData = tx.serializeMessage();
+    const wireTx = tx._serialize(signData);
+    const encodedTx = bs58.encode(wireTx);
+    console.log('encodedTx', encodedTx)
 
-  const textArea = document.createElement('textarea')
-  textArea.setAttribute('rows', '13')
-  textArea.setAttribute('cols', '60')
-  textArea.setAttribute('disabled', true)
-  textArea.value = JSON.stringify(encodedTx, undefined, 1)
-  div.appendChild(textArea)
+    const div = document.getElementById('encodedTx')
+    const title = document.createElement('div')
+    const text = document.createTextNode('Encoded Transaction')
+    title.appendChild(text)
+    div.appendChild(title)
 
-  // send
-  const sendTxBtn = document.getElementById('sendTxBtn');
-  sendTxBtn.onclick = () => {sendTx(encodedTx)}
-  sendTxBtn.disabled = false;
+    const textArea = document.createElement('textarea')
+    textArea.setAttribute('rows', '13')
+    textArea.setAttribute('cols', '60')
+    textArea.setAttribute('disabled', true)
+    textArea.value = JSON.stringify(encodedTx, undefined, 1)
+    div.appendChild(textArea)
+
+    // send
+    const sendTxBtn = document.getElementById('sendTxBtn');
+    sendTxBtn.onclick = () => {sendTx(encodedTx)}
+    sendTxBtn.disabled = false;
+  })
+  .catch((err) => {
+    console.error('error', err);
+    const div = document.getElementById('encodedTx')
+    const error = document.createElement('div')
+    const text = document.createTextNode(err)
+    error.appendChild(text)
+    div.appendChild(error)
+  })
 
 }
 async function sendTx(encodedTx) {
   console.error('sendTx', encodedTx);
-  // const tx = {
-  //   from: "0x36fdba7f8b274ee773970c9bb0c16c44d7b3e669",
-  //   value: "0x542253a126ce40000",
-  //   data: "0x37a7113de5fa4f98c6a5159658e1ca66071064b1cd78689d…0000000000000000000000000000000000000000000000000",
-  //   gasPrice: "0x0",
-  //   to: "0x0000000000000000000000000000000000034567"
-  // }
-  // {
-  //   from:"0x36fdba7f8b274ee773970c9bb0c16c44d7b3e669",
-  //   value:"0x542253a126ce40000",
-  //   data:"0x37a7113de5fa4f98c6a5159658e1ca66071064b1cd78689d…0000000000000000000000000000000000000000000000000",
-  //   gasPrice:"0x0",
-  //   to:"0x0000000000000000000000000000000000034567"
-  // }
   await ethereum
   .request({
     method: 'wallet_sendTransaction',
